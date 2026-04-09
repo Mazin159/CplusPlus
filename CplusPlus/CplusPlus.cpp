@@ -1,11 +1,19 @@
 
 #include <iostream>
+using namespace std;
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    PrintMyName();
 }
-void Test() {
-    std::cout << "Test!\n";
 
+
+
+
+void Test() {
+    cout << "Test!\n";
+
+}
+void PrintMyName() {
+    cout << "Mazin Mohammed\n";
 }
