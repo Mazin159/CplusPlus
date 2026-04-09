@@ -5,15 +5,13 @@ using namespace std;
 int main()
 {
     PrintMyName();
+    PrintMyAge();
 }
 
-
-
-
-void Test() {
-    cout << "Test!\n";
-
-}
 void PrintMyName() {
-    cout << "Mazin Mohammed\n";
+    cout << "Name : Mazin Mohammed\n";
+}
+void PrintMyAge() {
+
+    cout << "Age : " << 21 << endl;
 }
