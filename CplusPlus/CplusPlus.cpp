@@ -4,7 +4,7 @@ using namespace std;
 
 int main()
 {
-    cout << "Info:\n";
+    cout << "My Info :\n";
     PrintMyName();
     PrintMyAge();
 }
