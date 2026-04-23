@@ -102,6 +102,17 @@ short DayOfWeekOrder(short Day, short Month, short Year)
     //0:sun, 1:Mon, 2:Tue...etc
     return (Day + y + (y / 4) - (y / 100) + (y / 400) + ((31 * m)/ 12)) % 7;
 }
+short DayOfWeekOrder(sDate Date)
+{
+    short a, y, m;
+    a = (14 - Date.Month) / 12;
+    y = Date.Year - a;
+    m = Date.Month + (12 * a) - 2;
+    // Gregorian:
+    //0:sun, 1:Mon, 2:Tue...etc
+    return (Date.Day + y + (y / 4) - (y / 100) + (y / 400) + ((31 * m) / 12)) % 7;
+}
+
 
 string DayShortName(short DayOfWeekOrder)
 {
@@ -405,13 +416,12 @@ sDate IncreaseDateByOneMillennium(sDate Date)
     Date.Year += 1000;
     return Date;
 }
-
-sDate DecreaseDateByOneDay(sDate Date) {
+sDate DecreaseDateByOneDay(sDate &Date) {
    
     if (Date.Day == 1) {
 
         if (Date.Month == 1) {
-            Date.Day = NumberOfDaysInAMonth(12, Date.Year);
+            Date.Day = 31;
             Date.Month = 12;
             Date.Year--;
         }
@@ -425,55 +435,109 @@ sDate DecreaseDateByOneDay(sDate Date) {
     }
     return Date;
 }
+sDate DecreaseDateByXDays(short Days, sDate& Date) {
+    for (short i = 0;i < Days;i++) {
+        Date = DecreaseDateByOneDay(Date);
+    }
+    return Date;
+}
+sDate DecreaseDateByOneWeek(sDate& Date) {
+    Date = DecreaseDateByXDays(7, Date);
+    return Date;
+}
+sDate DecreaseDateByXWeeks(short Weeks, sDate& Date) {
+    for (short i = 0;i < Weeks;i++) {
+        Date = DecreaseDateByOneWeek(Date);
+    }
+    return Date;
+}
+sDate DecreaseDateByOneMonth(sDate& Date) {
+    if (Date.Month > 1) {
+        Date.Month--;
+    }
+    else
+    {
+        Date.Month = 12;
+        Date.Year--;
+    }
 
+    if (Date.Day > NumberOfDaysInAMonth(Date.Month, Date.Year)) {
+        Date.Day = NumberOfDaysInAMonth(Date.Month, Date.Year);
+    }
+    return Date;
+}
+sDate DecreaseDateByXMonths(short Months, sDate& Date) {
+    for (short i = 0;i < Months;i++) {
+        Date = DecreaseDateByOneMonth(Date);
+    }
+    return Date;
+}
+
+short IsEndOfWeek(sDate Date)
+{
+    return DayOfWeekOrder(Date) == 6;
+}
+bool IsWeekEnd(sDate Date)
+{
+    // Weekends are Fri and Sat
+    short DayIndex = DayOfWeekOrder(Date);
+    return (DayIndex == 5 || DayIndex == 6);
+}
+short DaysUntilTheEndOfWeek(sDate Date)
+{
+    return 6 - DayOfWeekOrder(Date);
+}
+short DaysUntilTheEndOfMonth(sDate Date1)
+{
+    sDate EndOfMontDate;
+    EndOfMontDate.Day = NumberOfDaysInAMonth(Date1.Month, Date1.Year);
+    EndOfMontDate.Month = Date1.Month;
+    EndOfMontDate.Year = Date1.Year;
+
+    return GetDifferenceInDays(Date1, EndOfMontDate, true);
+}
+short DaysUntilTheEndOfYear(sDate Date1)
+{
+    sDate EndOfYearDate;
+    EndOfYearDate.Day = 31;
+    EndOfYearDate.Month = 12;
+    EndOfYearDate.Year = Date1.Year;
+
+    return GetDifferenceInDays(Date1, EndOfYearDate, true);
+}
+
+bool IsBusinessDay(sDate Date)
+{
+    //Weekends are Sun,Mon,Tue,Wed and Thur
+    /* short DayIndex = DayOfWeekOrder(Date);
+    return (DayIndex >= 5 && DayIndex <= 4);
+    */
+    //shorter method is to invert the IsWeekEnd: this will save
+    //updating code.
+        return !IsWeekEnd(Date);
+}
+
+
+short CalculateVacationDays(sDate DateFrom, sDate DateTo)
+{
+    short DaysCount = 0;
+    while (isDate1BeforDate2(DateFrom, DateTo))
+    {
+        if (IsBusinessDay(DateFrom))
+            DaysCount++;
+        DateFrom = IncreaseDateByOneDay(DateFrom);
+    }
+    return DaysCount;
+}
 
 int main()
 {
     
-    sDate Date1 = ReadFullDate();
-    cout << "\nDate After: \n";
-    Date1 = IncreaseDateByOneDay(Date1);
-    cout << "\n01-Adding one day is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByXDays(10, Date1);
-    cout << "\n02-Adding 10 days is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateBy1Week(Date1);
-    cout << "\n03-Adding one week is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByXWeeks(10, Date1);
-    cout << "\n04-Adding 10 weeks is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByOneMonth(Date1);
-    cout << "\n05-Adding one month is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByXMonths(5, Date1);
-    cout << "\n06-Adding 5 months is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByOneYear(Date1);
-    cout << "\n07-Adding one year is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByXYears(10, Date1);
-    cout << "\n08-Adding 10 Years is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByXYearsFaster(10, Date1);
-    cout << "\n09-Adding 10 Years (faster) is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByOneDecade(Date1);
-    cout << "\n10-Adding one Decade is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-        Date1 = IncreaseDateByXDecades(10, Date1);
-    cout << "\n11-Adding 10 Decades is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByXDecadesFaster(10, Date1);
-    cout << "\n12-Adding 10 Decade (faster) is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByOneCentury(Date1);
-    cout << "\n13-Adding One Century is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
-    Date1 = IncreaseDateByOneMillennium(Date1);
-    cout << "\n14-Adding One Millennium is: "
-        << Date1.Day << "/" << Date1.Month << "/" << Date1.Year;
+    sDate From = ReadFullDate();
+    sDate To = ReadFullDate();
+
+    cout << "Vacation Days : " << CalculateVacationDays(From, To);
+   
     system("pause>0");
    
 
